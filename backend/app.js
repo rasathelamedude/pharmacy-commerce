@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import { PORT } from "./lib/env.js";
 import authRouter from "./routes/auth.routes.js";
 import { connectToDB } from "./lib/database.js";
+import medicationRouter from "./routes/medication.routes.js";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(
 
 // routes
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/medications", medicationRouter);
 
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
