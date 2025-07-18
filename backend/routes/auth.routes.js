@@ -3,7 +3,7 @@ import {
   signUp,
   login,
   logout,
-  refreshToken,
+  refreshAccessToken,
   getProfile,
 } from "../controllers/auth.controller.js";
 
@@ -12,7 +12,7 @@ const authRouter = Router();
 authRouter.post("/signup", signUp);
 authRouter.post("/login", login);
 authRouter.post("/logout", logout);
-authRouter.post("/refresh", refreshToken);
+authRouter.post("/refresh", refreshAccessToken);
 authRouter.get("/profile", getProfile);
 
 export default authRouter;

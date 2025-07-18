@@ -1,5 +1,11 @@
 import User from "../models/user.model.js";
 import { generateTokens, setCookies } from "../utils/auth.utils.js";
+import jwt from "jsonwebtoken";
+import {
+  JWT_REFRESH_SECRET,
+  JWT_ACCESS_SECRET,
+  ACCESS_EXPIRES_IN,
+} from "../lib/env.js";
 
 export const signUp = async (req, res) => {
   try {
@@ -95,7 +101,47 @@ export const logout = async (req, res) => {
   }
 };
 
-export const refreshToken = async (req, res) => {};
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error("Refresh token not found");
+    }
+
+    // TODO: Implmenet the following with redis;
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      throw new Error("Refresh token invalid!");
+    }
+
+    const accessToken = jwt.sign({ userId: user._id }, JWT_ACCESS_SECRET, {
+      expiresIn: ACCESS_EXPIRES_IN,
+    });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: ACCESS_EXPIRES_IN * 1000,
+    });
+
+    res.status().json({
+      success: true,
+      message: "Access token refreshed successfully",
+      accessToken,
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: "Failed refreshing access token",
+      error: error.message,
+    });
+  }
+};
 
 export const getProfile = async (req, res) => {
   try {
