@@ -1,33 +1,31 @@
 import User from "../models/user.model.js";
-import jwt from "jsonwebtoken";
-import {
-  JWT_ACCESS_SECRET,
-  JWT_REFRESH_SECRET,
-  REFRESH_EXPIRES_IN,
-  ACCESS_EXPIRES_IN,
-  NODE_ENV,
-} from "../lib/env.js";
+import { generateTokens, setCookies } from "../utils/auth.utils.js";
 
 export const signUp = async (req, res) => {
   try {
+    // Get user data;
     const { email, password, name } = req.body;
 
+    // Check if user already exists;
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       throw new Error("User already exists.");
     }
 
+    // Create user;
     const user = await User.create({ email, password, name });
 
+    // Generate tokens;
     const { refreshToken, accessToken } = generateTokens(user._id);
 
+    // Set cookies for tokens;
     setCookies(res, refreshToken, accessToken);
 
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      data: user,
+      user,
     });
   } catch (error) {
     res.status().json({
@@ -38,7 +36,45 @@ export const signUp = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {};
+export const login = async (req, res) => {
+  try {
+    // Get user data;
+    const { email, password } = req.body;
+
+    // Fetch user from DB;
+    const user = await User.findOne({ email });
+
+    // Check if it exists;
+    if (!user) {
+      throw new Error("User doesn't exist");
+    }
+
+    // Check if password is valid;
+    const isPasswordValid = await user.comparePassword(password);
+
+    if (!isPasswordValid) {
+      throw new Error("Password invalid!");
+    }
+
+    // Generate tokens;
+    const { accessToken, refreshToken } = generateTokens(user._id);
+
+    // Set cookies for tokens;
+    setCookies(res, accessToken, refreshToken);
+
+    res.status(200).json({
+      success: true,
+      message: "User logged in successfully!",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to login user",
+      error: error.message,
+    });
+  }
+};
 
 export const logout = async (req, res) => {};
 
@@ -60,27 +96,4 @@ export const getProfile = async (req, res) => {
       error: error.message,
     });
   }
-};
-
-// helper function to generate user tokens;
-const generateTokens = (userId) => {
-  const refreshToken = jwt.sign({ userId }, JWT_REFRESH_SECRET, {
-    expiresIn: REFRESH_EXPIRES_IN,
-  });
-
-  const accessToken = jwt.sign({ userId }, JWT_ACCESS_SECRET, {
-    expiresIn: ACCESS_EXPIRES_IN,
-  });
-
-  return { refreshToken, accessToken };
-};
-
-// helper function to set cookies;
-const setCookies = (res, refreshToken, accessToken) => {
-  res.cookie("", refreshToken, {
-    httpOnly: true,
-    secure: NODE_ENV === "production",
-    sameSite: "strict", // prevents CSRF attacks;
-    maxAge: REFRESH_EXPIRES_IN * 1000,
-  });
 };
