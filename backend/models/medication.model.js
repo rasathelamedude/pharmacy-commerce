@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema(
+const medicationSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -71,6 +71,11 @@ const productSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    isFeatured: {
+      type: Boolean,
+      required: [true, "Product isFeatured is required"],
+      default: false,
+    },
     manufacturer: {
       type: String,
       required: true,
@@ -80,6 +85,6 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Product = mongoose.model("Product", productSchema);
+const Medication = mongoose.model("Medication", medicationSchema);
 
-export default Product;
+export default Medication;
