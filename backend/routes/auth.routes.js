@@ -13,7 +13,7 @@ const authRouter = Router();
 authRouter.post("/signup", signUp);
 authRouter.post("/login", login);
 authRouter.post("/logout", logout);
-authRouter.post("/refresh", refreshAccessToken);
+authRouter.post("/refresh-token", refreshAccessToken);
 authRouter.get("/profile", protectRoute, getProfile);
 
 export default authRouter;
