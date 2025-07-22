@@ -10,4 +10,5 @@ export const {
   ACCESS_EXPIRES_IN,
   DB_CONNECTION_STRING,
   NODE_ENV,
+  STRIPE_SECRET_KEY,
 } = process.env;
